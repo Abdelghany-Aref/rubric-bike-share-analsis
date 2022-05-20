@@ -1,0 +1,133 @@
+def get_file_path():
+    cities = {'chicago': "C:/Users/Kimo Store/PycharmProjects/data analsis lvl 2/all-project-files/chicago.csv",
+              'new_york_city': "C:/Users/Kimo Store/PycharmProjects/data analsis lvl 2/all-project-files/new_york_city.csv",
+              'washington': "C:/Users/Kimo Store/PycharmProjects/data analsis lvl 2/all-project-files/washington.csv"}
+    city = str()
+    while (city not in cities):
+            city = str(input('please enter the city name (chicago - new_york_city - washington): '))
+            if city in cities: return [city, cities.get(city)]
+            else:
+                print('invalid entery ... try again and write them as they are in the massage\n')
+
+
+def get_month():
+    monthes = ['june', 'may', 'january', 'march', 'april', 'february', 'all']
+    msg = ' - '.join(monthes)
+    month = str()
+    while (month not in monthes):
+        print(msg)
+        month = str(input('please enter the name of the month as shown above: '))
+        if month in monthes : return month
+        else:
+            print('invalid entery ... please try again and write them as they are in the massage\n')
+            
+def get_day():
+    days = ['friday', 'thursday', 'wednesday', 'monday', 'tuesday', 'saturday','sunday', 'all']
+    msg = '({})'.format(' - '.join(days))
+    day = str()
+    while (day not in days):
+        print(msg)
+        day = str(input('please enter the day you want: '))
+        if day in days: return day
+        else:
+            print('invalid entery ... try again and write them as they are in the massage\n')
+
+def get_args():
+    # return path, month, day
+    city, path = get_file_path()
+    month = get_month()
+    day = get_day()
+    return [city, path, month, day]
+    
+    
+def load_data(path, month, day):
+    df = pd.read_csv(path)
+    df['Start Time'] = pd.to_datetime(df['Start Time'])
+    df['End Time'] = pd.to_datetime(df['End Time'])
+    df['month'] = (df['Start Time'].dt.month_name()).str.lower()
+    df['day'] = (df['Start Time'].dt.day_name()).str.lower()
+    
+    if month != 'all':
+        cond = df['month'] == month
+        df = df.loc[cond]
+    
+    if day != 'all':
+        cond = df['day'] == day
+        df = df.loc[cond]
+    
+    return df
+    
+def statistics(df, city, month, day):
+    i = 1
+    if month == 'all':
+        most_pop_month = df['month'].mode()[0]
+        cond = df['month'] == most_pop_month
+        count = df.loc[cond]['month'].count()
+        print('{}) the most popular month is: ({}) with count of: {}'.format(i, most_pop_month, count))
+        i += 1
+    if day == 'all':
+        most_pop_day = df['day'].mode()[0]
+        cond = df['day'] == most_pop_day
+        count = df.loc[cond]['day'].count()
+        print('{}) the most popular day is: ({}) with count of: {}'.format(i, most_pop_day, count))
+        i += 1
+        
+    
+    most_pop_hour = (df['Start Time'].dt.hour).mode()[0]
+    cond = (df['Start Time'].dt.hour) == most_pop_hour
+    count = df.loc[cond]['Start Time'].count()
+    print('{}) the most popular hour is: ({}) with count of: {}'.format(i, most_pop_hour, count))
+    i += 1
+    
+    most_pop_start_sta = df['Start Station'].mode()[0]
+    cond = df['Start Station'] == most_pop_start_sta
+    count = df.loc[cond]['Start Station'].count()
+    print('{}) the most popular start station is: ({}) with count of: {}'.format(i, most_pop_start_sta, count))
+    i += 1
+    
+    most_pop_end_sta = df['End Station'].mode()[0]
+    cond = df['End Station'] == most_pop_end_sta
+    count = df.loc[cond]['End Station'].count()
+    print('{}) the most popular end station is: ({}) with count of: {}'.format(i, most_pop_end_sta, count))
+    i += 1
+    
+    start_start_to_end = df[['Start Station', 'End Station']].mode().iloc[0, 0]
+    end_start_to_end = df[['Start Station', 'End Station']].mode().iloc[0, 1]
+    cond = (df['Start Station'] == start_start_to_end) & (df['End Station'] == end_start_to_end)
+    count = df.loc[cond]['Start Station'].count()
+    print('{}) the most popular start to end journy: ({} : {}) with count of: {}'.format(i, start_start_to_end, end_start_to_end, count))
+    i += 1
+    
+    total_travel_t = df['Trip Duration'].sum()
+    avrage_travel_t = df['Trip Duration'].mean()
+    count = df['Trip Duration'].count()
+    print('{}) total travel time: ({}) with an avrage duration of: ({}) with count of: ({})'.format(i, total_travel_t, avrage_travel_t, count))
+    i += 1
+    
+    sub_num = df['User Type'].value_counts().loc['Subscriber']
+    customer_num = df['User Type'].value_counts().loc['Customer']
+    print('{}) the number of Subscribers: ({}) and the number of customers: ({})'.format(i, sub_num, customer_num))
+    i += 1
+    
+    if city in ['chicago', 'new_york_city']:
+        male_num = df['Gender'].value_counts().loc['Male']
+        female_num = df['Gender'].value_counts().loc['Female']
+        print('{}) the number of males: ({}) and the number of females: ({})'.format(i, male_num, female_num))
+        i += 1
+        
+        early_age = df['Birth Year'].min()
+        comm_age = df['Birth Year'].mode()[0]
+        most_recent_age = df['Birth Year'].max()
+        print('{}) earliest year of birth: ({}) and the most common year of birth: ({})\n   most recent year of birth: ({})'.format(i, early_age, comm_age, most_recent_age))
+        i += 1
+        
+
+    
+    
+    
+    
+    
+city, path, month, day = get_args()
+df = load_data(path, month, day)
+# df
+statistics(df, city, month, day)
